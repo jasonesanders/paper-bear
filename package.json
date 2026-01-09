@@ -6,9 +6,21 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "scrape": "npx tsx scripts/scrape.ts",
+    "test": "vitest"
   },
   "dependencies": {
-    "astro": "^5.16.7"
+    "@astrojs/db": "^0.18.3",
+    "astro": "^5.16.7",
+    "cheerio": "^1.1.2",
+    "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
+    "playwright": "^1.57.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "tsx": "^4.21.0",
+    "vitest": "^4.0.16"
   }
 }
