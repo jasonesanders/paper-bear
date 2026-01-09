@@ -7,7 +7,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "scrape": "bun run scripts/scrape.ts",
+    "scrape": "curl -s http://localhost:4321/api/scrape",
+    "seed": "astro db execute db/seed.ts",
+    "verify": "astro db execute scripts/verify-db.ts",
     "test": "bun test"
   },
   "dependencies": {

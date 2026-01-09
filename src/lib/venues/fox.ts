@@ -58,6 +58,7 @@ export const FoxCabaret: VenueScraper = {
                 dayNum: string;
                 href: string;
             }[] = [];
+            const seenHrefs = new Set<string>();
 
             const dayCells = document.querySelectorAll('td.yui3-calendar-day');
             dayCells.forEach((cell) => {
@@ -72,7 +73,8 @@ export const FoxCabaret: VenueScraper = {
                     const time = link.querySelector('.item-time--12hr')?.textContent?.trim() || '';
                     const href = link.getAttribute('href') || '';
 
-                    if (title) {
+                    if (title && !seenHrefs.has(href)) {
+                        seenHrefs.add(href);
                         items.push({ title, time, dayNum, href });
                     }
                 });
@@ -81,16 +83,25 @@ export const FoxCabaret: VenueScraper = {
             return items;
         });
 
-        console.log(`   Found ${calendarEvents.length} events on calendar. Fetching details...`);
+        // Deduplicate events (Squarespace often renders duplicates)
+        const uniqueEvents = new Map<string, typeof calendarEvents[0]>();
+        for (const event of calendarEvents) {
+            if (!uniqueEvents.has(event.href)) {
+                uniqueEvents.set(event.href, event);
+            }
+        }
+        const dedupedEvents = Array.from(uniqueEvents.values());
+
+        console.log(`   Found ${dedupedEvents.length} events on calendar (deduplicated from ${calendarEvents.length}). Fetching details...`);
 
         const enrichedEvents: RawEvent[] = [];
         const baseUrl = 'https://www.foxcabaret.com';
 
         // Limit for safety during development
-        const maxEvents = Math.min(calendarEvents.length, 50);
+        const maxEvents = Math.min(dedupedEvents.length, 50);
 
         for (let i = 0; i < maxEvents; i++) {
-            const event = calendarEvents[i];
+            const event = dedupedEvents[i];
             const eventUrl = event.href.startsWith('http') ? event.href : `${baseUrl}${event.href}`;
 
             try {
