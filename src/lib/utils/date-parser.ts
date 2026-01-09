@@ -26,6 +26,7 @@ const DATE_FORMATS = [
 
     // Without year
     'EEEE, MMMM d h:mm a',         // "Friday, January 12 7:30 PM"
+    'EEEE MMMM d h:mm a',          // "Sunday January 4 12:30 pm" (Rio style)
     'MMMM d h:mm a',               // "January 12 7:30 PM"
     'MMM d h:mm a',                // "Jan 12 7:30 PM"
     'EEEE, MMMM d',                // "Friday, January 12"
@@ -59,6 +60,7 @@ export function parseVancouverDate(
         .replace(/\s+/g, ' ')           // collapse whitespace
         .replace(/,\s*/g, ', ')         // normalize comma spacing
         .replace(/(\d+)(st|nd|rd|th)/gi, '$1') // remove ordinal suffixes: 23rd -> 23
+        .replace(/\./g, '')                    // remove dots: "p.m." -> "pm"
         .replace(/(\d)(am|pm)/gi, '$1 $2') // "7pm" -> "7 pm"
         .replace(/doors?\s*[@:]\s*/gi, '') // remove "Doors @" prefix
         .replace(/show\s*[@:]\s*/gi, '')   // remove "Show @" prefix
