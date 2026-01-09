@@ -8,7 +8,7 @@ import type { VenueScraper, RawEvent } from '../utils/scraper-core';
  * Note: Events are on the home page, not /events/
  * Structure: WordPress Divi theme with custom listing blocks
  * 
- * Selectors:
+ * Calendar Page Selectors:
  * - Container: #listing_wrapper
  * - Event item: article.listing_block
  * - Title: h2.listing_title a
@@ -16,7 +16,17 @@ import type { VenueScraper, RawEvent } from '../utils/scraper-core';
  * - Tickets link: a.listing_link
  * - Event page: h2.listing_title a (href)
  * - Sold out: span.special_type (contains "Sold Out")
+ * 
+ * Event Detail Page Selectors:
+ * - Price: span.dollars
+ * - Doors: text containing "Doors:"
  */
+
+interface RickshawEvent extends RawEvent {
+    ticketsUrl?: string;
+    isSoldOut?: boolean;
+}
+
 export const RickshawTheatre: VenueScraper = {
     id: 'rickshaw-theatre',
     name: 'Rickshaw Theatre',
@@ -34,8 +44,8 @@ export const RickshawTheatre: VenueScraper = {
         // Scroll to load all events (lazy loading)
         await autoScroll(page);
 
-        // Extract all events
-        const events = await page.$$eval('article.listing_block', (articles) => {
+        // Extract all events from calendar page
+        const calendarEvents = await page.$$eval('article.listing_block', (articles) => {
             return articles.map((article) => {
                 // Title
                 const titleEl = article.querySelector('h2.listing_title a');
@@ -74,9 +84,74 @@ export const RickshawTheatre: VenueScraper = {
         });
 
         // Filter out events without titles
-        return events.filter((e) => e.title.length > 0);
+        const validEvents = calendarEvents.filter((e) => e.title.length > 0);
+
+        // Fetch event details (doors time, price) from individual pages
+        console.log(`   📄 Fetching details for ${validEvents.length} events...`);
+        const enrichedEvents: RawEvent[] = [];
+
+        for (let i = 0; i < validEvents.length; i++) {
+            const event = validEvents[i];
+
+            if (event.url) {
+                try {
+                    const details = await fetchEventDetails(page, event.url);
+                    enrichedEvents.push({
+                        ...event,
+                        doorsRaw: details.doorsRaw,
+                        priceRaw: details.priceRaw,
+                    });
+
+                    // Progress indicator every 10 events
+                    if ((i + 1) % 10 === 0) {
+                        console.log(`   📄 Progress: ${i + 1}/${validEvents.length} events`);
+                    }
+                } catch (err) {
+                    // If detail fetch fails, still include the event with calendar data
+                    console.warn(`   ⚠️ Failed to fetch details for "${event.title}"`);
+                    enrichedEvents.push(event);
+                }
+            } else {
+                enrichedEvents.push(event);
+            }
+        }
+
+        return enrichedEvents;
     },
 };
+
+/**
+ * Fetch doors time and price from an individual event page.
+ */
+async function fetchEventDetails(
+    page: Page,
+    eventUrl: string
+): Promise<{ doorsRaw: string | undefined; priceRaw: string | undefined }> {
+    // Navigate to event page
+    await page.goto(eventUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
+
+    // Small delay for content to render
+    await page.waitForTimeout(300);
+
+    // Extract details
+    const details = await page.evaluate(() => {
+        // Price: look for span.dollars
+        const priceEl = document.querySelector('span.dollars');
+        const priceRaw = priceEl?.textContent?.trim();
+
+        // Doors: look for text containing "Doors:"
+        const bodyText = document.body.innerText;
+        const doorsMatch = bodyText.match(/Doors:\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+        const doorsRaw = doorsMatch ? doorsMatch[1] : undefined;
+
+        return { priceRaw, doorsRaw };
+    });
+
+    // Navigate back to calendar
+    await page.goBack({ waitUntil: 'domcontentloaded' });
+
+    return details;
+}
 
 /**
  * Auto-scroll to trigger lazy loading of all events.
