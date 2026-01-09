@@ -7,8 +7,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "scrape": "npx tsx scripts/scrape.ts",
-    "test": "vitest"
+    "scrape": "bun run scripts/scrape.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "@astrojs/db": "^0.18.3",
