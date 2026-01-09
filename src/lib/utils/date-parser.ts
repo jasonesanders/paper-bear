@@ -6,7 +6,7 @@ import {
     setYear,
     isValid,
 } from 'date-fns';
-import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 
 const VANCOUVER_TZ = 'America/Vancouver';
 
@@ -26,15 +26,16 @@ const DATE_FORMATS = [
 
     // Without year
     'EEEE, MMMM d h:mm a',         // "Friday, January 12 7:30 PM"
-    'EEEE MMMM d h:mm a',          // "Sunday January 4 12:30 pm" (Rio style)
+    'EEEE MMMM d h:mm a',          // "Sunday January 4 12:30 pm"
     'MMMM d h:mm a',               // "January 12 7:30 PM"
     'MMM d h:mm a',                // "Jan 12 7:30 PM"
     'EEEE, MMMM d',                // "Friday, January 12"
     'MMMM d',                      // "January 12"
     'MMM d',                       // "Jan 12"
 
-    // Time only (will need a date context)
+    // Time only
     'h:mm a',                      // "7:30 PM"
+    'h a',                         // "7 PM" (normalized from 7pm)
     'ha',                          // "7PM"
 ];
 
@@ -62,9 +63,9 @@ export function parseVancouverDate(
         .replace(/(\d+)(st|nd|rd|th)/gi, '$1') // remove ordinal suffixes: 23rd -> 23
         .replace(/\./g, '')                    // remove dots: "p.m." -> "pm"
         .replace(/(\d)(am|pm)/gi, '$1 $2') // "7pm" -> "7 pm"
-        .replace(/doors?\s*[@:]\s*/gi, '') // remove "Doors @" prefix
-        .replace(/show\s*[@:]\s*/gi, '')   // remove "Show @" prefix
-        ;
+        .replace(/doors?\s*(?:@|at|:)?\s*/gi, '') // remove "Doors @/at/:" prefix
+        .replace(/show\s*(?:@|at|:)?\s*/gi, '')   // remove "Show @/at/:" prefix
+        .trim();
 
     let parsed: Date | null = null;
     let usedFormatWithYear = false;
@@ -84,7 +85,7 @@ export function parseVancouverDate(
     }
 
     if (!parsed) {
-        console.warn(`[parseVancouverDate] Failed to parse: "${raw}"`);
+        // console.warn(`[parseVancouverDate] Failed to parse: "${raw}" normalized to "${normalized}"`);
         return null;
     }
 
@@ -93,8 +94,8 @@ export function parseVancouverDate(
         parsed = inferYear(parsed, referenceDate);
     }
 
-    // Convert to Vancouver timezone
-    return toZonedTime(parsed, VANCOUVER_TZ);
+    // Interpret the parsed local time as being in Vancouver timezone
+    return fromZonedTime(parsed, VANCOUVER_TZ);
 }
 
 /**
@@ -140,8 +141,8 @@ export function extractDoorsAndShow(raw: string): {
     doors: Date | null;
     show: Date | null;
 } {
-    const doorsMatch = raw.match(/doors?\s*[@:]?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
-    const showMatch = raw.match(/(?:show|music|start)\s*[@:]?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+    const doorsMatch = raw.match(/doors?\s*(?:@|at|:)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+    const showMatch = raw.match(/(?:show|music|start)\s*(?:@|at|:)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
 
     return {
         doors: doorsMatch ? parseVancouverDate(doorsMatch[1]) : null,
