@@ -9,9 +9,9 @@ import type { VenueScraper } from '../lib/utils/scraper-core';
 // Import venue scrapers
 import { RickshawTheatre } from '../lib/venues/rickshaw';
 import { RioTheatre } from '../lib/venues/rio';
+import { FoxCabaret } from '../lib/venues/fox';
 // import { ParkTheatre } from '../lib/venues/park';
 // import { HerosWelcome } from '../lib/venues/heros-welcome';
-// import { FoxCabaret } from '../lib/venues/fox-cabaret';
 
 /**
  * All registered venue scrapers.
@@ -20,9 +20,9 @@ import { RioTheatre } from '../lib/venues/rio';
 export const venues: VenueScraper[] = [
     RickshawTheatre,
     RioTheatre,
+    FoxCabaret,
     // ParkTheatre,
     // HerosWelcome,
-    // FoxCabaret,
 ];
 
 /**
