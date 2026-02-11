@@ -1,0 +1,31 @@
+---
+interface Props {
+    title: string;
+    time: string;
+    venue: string;
+    url: string | null;
+}
+
+const { title, time, venue, url } = Astro.props;
+---
+
+<a
+    href={url}
+    target="_blank"
+    class="block border-b-2 border-black p-2.5 sm:p-3 no-underline text-black visited:text-black hover:bg-neutral-100 transition-none"
+>
+    <!-- Top Row: Time + Title -->
+    <div class="flex flex-col gap-1">
+        <span class="font-mono text-xs font-bold">{time}</span>
+        <h3
+            class="font-sans text-lg sm:text-xl leading-none font-bold uppercase tracking-tight break-words"
+        >
+            {title}
+        </h3>
+    </div>
+
+    <!-- Bottom Row: Venue -->
+    <div class="mt-1.5 sm:mt-2 font-mono text-xs">
+        <span class="uppercase truncate">{venue}</span>
+    </div>
+</a>

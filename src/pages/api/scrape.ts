@@ -53,21 +53,28 @@ export const GET: APIRoute = async () => {
 
                 if (normalized.length > 0) {
                     // Fetch existing hashes to verify duplicates
-                    // Note: In a larger DB we might want to filter by venueId first
-                    // But for now, we just fetch all hashes for this venue's scraped events?
                     // Better: fetch all hashes for this VENUE from DB to checking against.
-                    const existingVenueEvents = await db.select({ hash: Event.hash })
+                    const existingHashesInDb = await db.select({ hash: Event.hash })
                         .from(Event)
                         .where(eq(Event.venueId, venue.id));
 
-                    const existingHashes = new Set(existingVenueEvents.map(e => e.hash));
+                    const existingHashSet = new Set(existingHashesInDb.map(e => e.hash));
 
-                    const newEvents = normalized.filter(e => !existingHashes.has(e.hash));
+                    // Filter duplicates from DB
+                    let uniqueEvents = normalized.filter(e => !existingHashSet.has(e.hash));
 
-                    if (newEvents.length > 0) {
-                        await db.insert(Event).values(newEvents);
-                        console.log(`   ✅ Inserted ${newEvents.length} new events for ${venue.name}`);
-                        report.insertedEvents += newEvents.length;
+                    // Filter duplicates within the current batch (Self-deduplication)
+                    const batchHashes = new Set();
+                    uniqueEvents = uniqueEvents.filter(e => {
+                        if (batchHashes.has(e.hash)) return false;
+                        batchHashes.add(e.hash);
+                        return true;
+                    });
+
+                    if (uniqueEvents.length > 0) {
+                        await db.insert(Event).values(uniqueEvents);
+                        console.log(`   ✅ Inserted ${uniqueEvents.length} new events for ${venue.name}`);
+                        report.insertedEvents += uniqueEvents.length;
                     } else {
                         console.log(`   ℹ️  No new events for ${venue.name} (all ${normalized.length} duplicates)`);
                     }
@@ -116,8 +123,31 @@ function normalizeEvents(venueId: string, rawEvents: RawEvent[]): NormalizedEven
     const normalized: NormalizedEvent[] = [];
 
     for (const raw of rawEvents) {
-        const date = parseVancouverDate(raw.dateRaw);
+        let date = parseVancouverDate(raw.dateRaw);
+
+        // Diagnostic logging for debugging year/time issues
+        console.log(`   [DEBUG] ${venueId} | "${raw.title.slice(0, 30)}..." | dateRaw="${raw.dateRaw}" | doorsRaw="${raw.doorsRaw}" | parsed=${date?.toISOString()}`);
+
         if (!date) continue; // Skip unparsable
+
+        // If we have a doors time, combine it with the calendar date
+        // raw.doorsRaw is like "7:00pm" or "7:00 PM"
+        if (raw.doorsRaw) {
+            const timeMatch = raw.doorsRaw.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+            if (timeMatch) {
+                let hours = parseInt(timeMatch[1], 10);
+                const minutes = parseInt(timeMatch[2], 10);
+                const meridiem = timeMatch[3]?.toLowerCase();
+
+                // Convert to 24-hour format
+                if (meridiem === 'pm' && hours !== 12) hours += 12;
+                if (meridiem === 'am' && hours === 12) hours = 0;
+
+                // Create new date with the correct time
+                date = new Date(date);
+                date.setHours(hours, minutes, 0, 0);
+            }
+        }
 
         const { price, isFree } = parsePrice(raw.priceRaw);
         const eventType = classifyEventType(raw.title);
@@ -128,7 +158,7 @@ function normalizeEvents(venueId: string, rawEvents: RawEvent[]): NormalizedEven
             venueId,
             title: raw.title,
             date,
-            doorsTime: raw.doorsRaw ? parseVancouverDate(raw.doorsRaw) : null,
+            doorsTime: null, // Could store separately if needed
             url: raw.url || null,
             price,
             isFree,

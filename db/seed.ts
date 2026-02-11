@@ -43,6 +43,6 @@ export default async function seed() {
 		},
 	];
 
-	await db.insert(Venue).values(venues);
+	await db.insert(Venue).values(venues).onConflictDoNothing();
 	console.log(`✅ Seeded ${venues.length} venues`);
 }

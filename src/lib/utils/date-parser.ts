@@ -21,6 +21,9 @@ const DATE_FORMATS = [
     'MMM d, yyyy h:mm a',          // "Jan 12, 2024 7:30 PM"
     'MMMM d, yyyy',                // "January 12, 2024" (no time)
     'MMM d, yyyy',                 // "Jan 12, 2024" (no time)
+    'EEEE, MMMM d, yyyy',          // "Sunday, February 8, 2026"
+    'EEEE MMMM d, yyyy',           // "Sunday February 8, 2026"
+    'MMMM yyyy d h:mm a',          // "February 2026 1 7:00 PM" (fallback format)
     'yyyy-MM-dd HH:mm',            // "2024-01-12 19:30"
     'yyyy-MM-dd',                  // "2024-01-12"
 
@@ -58,6 +61,7 @@ export function parseVancouverDate(
     // Normalize the input
     const normalized = raw
         .trim()
+        .replace(/[\u00a0\u202f]/g, ' ') // explicitly replace non-breaking spaces
         .replace(/\s+/g, ' ')           // collapse whitespace
         .replace(/,\s*/g, ', ')         // normalize comma spacing
         .replace(/(\d+)(st|nd|rd|th)/gi, '$1') // remove ordinal suffixes: 23rd -> 23
@@ -100,23 +104,27 @@ export function parseVancouverDate(
 
 /**
  * Infer the correct year for a date that was parsed without a year.
- * If the date is in the past (relative to reference), assume next year.
- * 
- * Example: Parsing "Jan 5" on Dec 20, 2025 returns Jan 5, 2026.
+ * Strategy: Try current year, next year, and previous year, then pick the one 
+ * closest to the reference date. This handles January shows scraped in December 
+ * AND December shows scraped in January (due to calendar trailing days).
  */
 function inferYear(date: Date, referenceDate: Date): Date {
-    // Start with the reference year
-    let result = setYear(date, referenceDate.getFullYear());
+    const refYear = referenceDate.getFullYear();
+    const candidateYears = [refYear, refYear + 1, refYear - 1];
 
-    // If this date is more than 2 weeks in the past, assume next year
-    const twoWeeksAgo = new Date(referenceDate);
-    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    let bestDate = setYear(date, refYear);
+    let minDiff = Math.abs(bestDate.getTime() - referenceDate.getTime());
 
-    if (isBefore(result, twoWeeksAgo)) {
-        result = addYears(result, 1);
+    for (const year of candidateYears) {
+        const candidate = setYear(date, year);
+        const diff = Math.abs(candidate.getTime() - referenceDate.getTime());
+        if (diff < minDiff) {
+            minDiff = diff;
+            bestDate = candidate;
+        }
     }
 
-    return result;
+    return bestDate;
 }
 
 /**
@@ -141,8 +149,11 @@ export function extractDoorsAndShow(raw: string): {
     doors: Date | null;
     show: Date | null;
 } {
-    const doorsMatch = raw.match(/doors?\s*(?:@|at|:)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
-    const showMatch = raw.match(/(?:show|music|start)\s*(?:@|at|:)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+    // Permissive regex for times: 7, 7pm, 7:00, 7:00 PM, 19:00 etc.
+    const timeRegex = /(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i;
+
+    const doorsMatch = raw.match(new RegExp(`doors?\\s*(?:@|at|:)?\\s*${timeRegex.source}`, 'i'));
+    const showMatch = raw.match(new RegExp(`(?:show|music|start|performance)\\s*(?:@|at|:)?\\s*${timeRegex.source}`, 'i'));
 
     return {
         doors: doorsMatch ? parseVancouverDate(doorsMatch[1]) : null,

@@ -10,17 +10,28 @@
     "scrape": "curl -s http://localhost:4321/api/scrape",
     "seed": "astro db execute db/seed.ts",
     "verify": "astro db execute scripts/verify-db.ts",
-    "test": "bun test"
+    "db:reset": "astro db execute scripts/reset-db.ts",
+    "test": "bun test",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@astrojs/db": "^0.18.3",
+    "@astrojs/node": "^9.5.1",
+    "@astrojs/rss": "^4.0.15",
+    "@astrojs/tailwind": "^6.0.2",
+    "@fontsource/oswald": "^5.2.8",
+    "@fontsource/space-mono": "^5.2.9",
     "astro": "^5.16.7",
     "cheerio": "^1.1.2",
+    "daisyui": "^5.5.14",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
-    "playwright": "^1.57.0"
+    "playwright": "^1.57.0",
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "^25.0.3",
     "tsx": "^4.21.0",
     "vitest": "^4.0.16"

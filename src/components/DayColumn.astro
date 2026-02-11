@@ -1,0 +1,68 @@
+---
+import EventCard from "./EventCard.astro";
+import type { UIEvent } from "../lib/events";
+
+interface Props {
+    date: Date;
+    events: UIEvent[];
+    isLast?: boolean;
+    isFirst?: boolean;
+}
+
+const { date, events, isLast, isFirst } = Astro.props;
+
+// Date Formatting: "MON 12"
+const weekday = date
+    .toLocaleDateString("en-US", { weekday: "short" })
+    .toUpperCase();
+const dayNum = date.getDate();
+const today = new Date();
+const isToday =
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear();
+---
+
+<section
+    class:list={[
+        "flex flex-col min-w-[88vw] sm:min-w-[42vw] md:min-w-0 md:flex-1 bg-base-100 shrink-0 snap-start",
+        !isFirst && "border-l-2 border-black",
+    ]}
+>
+    <!-- Header -->
+    <header
+        class:list={[
+            "p-2 border-b-2 border-black sticky top-0 z-10 flex justify-between items-baseline",
+            isToday ? "bg-black text-white" : "bg-base-100 text-black",
+        ]}
+    >
+        <span class="font-sans text-xl sm:text-2xl font-bold leading-none"
+            >{weekday}</span
+        >
+        <span class="font-sans text-xl sm:text-2xl font-bold leading-none"
+            >{dayNum}</span
+        >
+    </header>
+
+    <!-- Events -->
+    <div class="flex flex-col">
+        {
+            events.length > 0 ? (
+                events.map((event) => (
+                    <EventCard
+                        title={event.title}
+                        time={event.timeStr}
+                        venue={event.venue}
+                        url={event.url}
+                    />
+                ))
+            ) : (
+                <div class="p-8 text-center opacity-30">
+                    <span class="font-mono text-xs block rotate-90 origin-center">
+                        —
+                    </span>
+                </div>
+            )
+        }
+    </div>
+</section>

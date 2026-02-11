@@ -139,10 +139,37 @@ async function fetchEventDetails(
         const priceEl = document.querySelector('span.dollars');
         const priceRaw = priceEl?.textContent?.trim();
 
-        // Doors: look for text containing "Doors:"
-        const bodyText = document.body.innerText;
-        const doorsMatch = bodyText.match(/Doors:\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-        const doorsRaw = doorsMatch ? doorsMatch[1] : undefined;
+        // Doors: Try multiple selectors
+        let doorsRaw: string | undefined;
+
+        // 1. Try h4 in .show_description (e.g., "Doors: 7:00pm")
+        const descEl = document.querySelector('.show_description');
+        if (descEl) {
+            const h4s = descEl.querySelectorAll('h4');
+            for (const h4 of h4s) {
+                const match = h4.textContent?.match(/Doors:\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                if (match) {
+                    doorsRaw = match[1];
+                    break;
+                }
+            }
+        }
+
+        // 2. Fallback: Try #stream_time div (e.g., "Doors: 11:59pm")
+        if (!doorsRaw) {
+            const streamTimeEl = document.querySelector('#stream_time');
+            if (streamTimeEl) {
+                const match = streamTimeEl.textContent?.match(/Doors:\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                if (match) doorsRaw = match[1];
+            }
+        }
+
+        // 3. Final fallback: regex on body text
+        if (!doorsRaw) {
+            const bodyText = document.body.innerText;
+            const doorsMatch = bodyText.match(/Doors:\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+            doorsRaw = doorsMatch ? doorsMatch[1] : undefined;
+        }
 
         return { priceRaw, doorsRaw };
     });

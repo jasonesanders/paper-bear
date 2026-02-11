@@ -38,6 +38,15 @@ describe('parseVancouverDate', () => {
         expect(date?.getFullYear()).toBe(2024);
     });
 
+    it('EDGE CASE: December event in January should pick PAST year (Dec 2025), not future (Dec 2026)', () => {
+        // Rio Theatre calendar shows trailing December days when viewed in January 2026
+        const refDate = new Date('2026-01-31T12:00:00Z'); // Jan 31, 2026
+        const date = parseVancouverDate('Thursday December 28 12:15 pm', refDate);
+
+        // Should be Dec 28, 2025 (about 1 month ago), NOT Dec 28, 2026 (11 months away)
+        expect(date?.getFullYear()).toBe(2025);
+    });
+
     it('normalizes "doors @ 7pm"', () => {
         const refDate = new Date('2024-01-01T00:00:00Z');
         const date = parseVancouverDate('Doors @ 7pm', refDate);

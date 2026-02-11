@@ -231,8 +231,17 @@ export function generateEventHash(
     title: string
 ): string {
     const normalizedTitle = title.toLowerCase().trim().replace(/\s+/g, ' ');
-    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
-    const input = `${venueId}|${dateStr}|${normalizedTitle}`;
+
+    // Use Vancouver local date for the hash to avoid duplication when 
+    // a show crosses into the next UTC day (e.g., 11pm show).
+    const localDateStr = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Vancouver',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(date); // Returns YYYY-MM-DD in en-CA
+
+    const input = `${venueId}|${localDateStr}|${normalizedTitle}`;
     return createHash('md5').update(input).digest('hex');
 }
 

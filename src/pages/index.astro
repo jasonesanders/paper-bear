@@ -1,16 +1,35 @@
 ---
+import Layout from "../layouts/Layout.astro";
+import DayColumn from "../components/DayColumn.astro";
+import { getWeekEvents } from "../lib/events";
 
+// Read filter query params
+const venue = Astro.url.searchParams.get("venue") || "";
+const genre = Astro.url.searchParams.get("genre") || "";
+
+// Data Fetching (Server Side)
+const today = new Date();
+const weekData = await getWeekEvents(today, { venue, genre });
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="PAPER BEAR" currentVenue={venue} currentGenre={genre}>
+	<!-- 
+      Grid Layout:
+      - Mobile: Horizontal scroll (snap)
+      - Desktop: Fit screen (flex-1)
+    -->
+	<main
+		class="flex flex-1 w-full items-stretch overflow-x-auto sm:overflow-hidden snap-x snap-mandatory scroll-smooth md:overflow-hidden border-2 border-black md:border-t-0"
+	>
+		{
+			weekData.map((day, index) => (
+				<DayColumn
+					date={day.date}
+					events={day.events}
+					isFirst={index === 0}
+					isLast={index === weekData.length - 1}
+				/>
+			))
+		}
+	</main>
+</Layout>
