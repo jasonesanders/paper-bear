@@ -22,3 +22,11 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# debug artifacts
+*.debug.html
+rickshaw*.html
+rio*.html
+.tmp/
+.npm-cache/
+test-results/

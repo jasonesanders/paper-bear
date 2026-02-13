@@ -70,7 +70,7 @@ const venues = await db
     </form>
 
     <!-- Mobile Filter Button -->
-    <button class="btn btn-sm btn-ghost sm:hidden">
+    <button id="mobile-filter-btn" class="btn btn-sm btn-ghost sm:hidden">
         <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-5 w-5"
@@ -95,3 +95,26 @@ const venues = await db
         Add a Venue
     </a>
 </header>
+
+<script>
+    const btn = document.getElementById("mobile-filter-btn");
+    const form = document.querySelector("form");
+
+    btn?.addEventListener("click", () => {
+        if (form) {
+            form.classList.toggle("hidden");
+            form.classList.toggle("flex");
+            // Mobile styling toggles
+            form.classList.toggle("absolute");
+            form.classList.toggle("top-12");
+            form.classList.toggle("left-0");
+            form.classList.toggle("w-full");
+            form.classList.toggle("bg-base-100");
+            form.classList.toggle("p-4");
+            form.classList.toggle("flex-col");
+            form.classList.toggle("border-b-2");
+            form.classList.toggle("border-black");
+            form.classList.toggle("z-50");
+        }
+    });
+</script>

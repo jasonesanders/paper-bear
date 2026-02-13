@@ -8,8 +8,10 @@ export const Venue = defineTable({
   columns: {
     id: column.text({ primaryKey: true }), // slug: 'rickshaw-theatre'
     name: column.text(),                    // display name: 'Rickshaw Theatre'
+    city: column.text({ default: 'Vancouver' }), // <--- New Column
     url: column.text(),                     // calendar URL we scrape
     enabled: column.boolean({ default: true }),
+    lastScrapedAt: column.date({ optional: true }),
     createdAt: column.date({ default: new Date() }),
   },
 });
@@ -31,8 +33,6 @@ export const Event = defineTable({
     date: column.date(),                     // event start date/time
     doorsTime: column.date({ optional: true }), // doors open time (nullable)
     url: column.text({ optional: true }),    // event detail page
-    price: column.number({ optional: true }), // price in cents (null = unknown)
-    isFree: column.boolean({ default: false }),
     eventType: column.text({ default: 'other' }), // EventType enum stored as text
     hash: column.text({ unique: true }),     // deduplication hash
     createdAt: column.date({ default: new Date() }),

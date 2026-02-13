@@ -71,6 +71,14 @@ export function parseVancouverDate(
         .replace(/show\s*(?:@|at|:)?\s*/gi, '')   // remove "Show @/at/:" prefix
         .trim();
 
+    // Specific fix for Rio Theatre: "9:00pm - Tuesday, Feb 10, 2026"
+    // Regex matches: (Time)(separator)(Date) -> (Date) (Time)
+    const timeFirstMatch = normalized.match(/^(\d{1,2}:\d{2}\s*(?:am|pm)?)\s*[-\u2013\u2014]\s*(.*)$/i);
+    if (timeFirstMatch) {
+        // "Tuesday, Feb 10, 2026 9:00pm"
+        return parseVancouverDate(`${timeFirstMatch[2]} ${timeFirstMatch[1]}`, referenceDate);
+    }
+
     let parsed: Date | null = null;
     let usedFormatWithYear = false;
 

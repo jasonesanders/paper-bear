@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { db, Event, ScrapeLog, Venue, eq, inArray } from 'astro:db';
 import { EthicalScraper, generateEventHash } from '../../lib/utils/scraper-core';
 import { parseVancouverDate } from '../../lib/utils/date-parser';
-import { classifyEventType, parsePrice } from '../../lib/utils/classifier';
+import { classifyEventType } from '../../lib/utils/classifier';
 import { getEnabledVenues } from '../../config/venues';
 import type { ScrapeResult, RawEvent } from '../../lib/utils/scraper-core';
 import { randomUUID } from 'crypto';
@@ -49,6 +49,11 @@ export const GET: APIRoute = async () => {
             });
 
             if (result.status === 'success') {
+                // Update lastScrapedAt
+                await db.update(Venue)
+                    .set({ lastScrapedAt: new Date() })
+                    .where(eq(Venue.id, venue.id));
+
                 const normalized = normalizeEvents(venue.id, result.events);
 
                 if (normalized.length > 0) {
@@ -111,8 +116,6 @@ interface NormalizedEvent {
     date: Date;
     doorsTime: Date | null;
     url: string | null;
-    price: number | null;
-    isFree: boolean;
     eventType: string;
     hash: string;
     createdAt: Date;
@@ -149,7 +152,6 @@ function normalizeEvents(venueId: string, rawEvents: RawEvent[]): NormalizedEven
             }
         }
 
-        const { price, isFree } = parsePrice(raw.priceRaw);
         const eventType = classifyEventType(raw.title);
         const hash = generateEventHash(venueId, date, raw.title);
 
@@ -160,8 +162,6 @@ function normalizeEvents(venueId: string, rawEvents: RawEvent[]): NormalizedEven
             date,
             doorsTime: null, // Could store separately if needed
             url: raw.url || null,
-            price,
-            isFree,
             eventType,
             hash,
             createdAt: new Date(),

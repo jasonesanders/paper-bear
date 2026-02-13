@@ -9,6 +9,7 @@ export default async function seed() {
 		{
 			id: 'rickshaw-theatre',
 			name: 'Rickshaw Theatre',
+			city: 'Vancouver',
 			url: 'https://rickshawtheatre.com/events/',
 			enabled: true,
 			createdAt: new Date(),
@@ -16,6 +17,7 @@ export default async function seed() {
 		{
 			id: 'rio-theatre',
 			name: 'Rio Theatre',
+			city: 'Vancouver',
 			url: 'https://riotheatre.ca/calendar/',
 			enabled: true,
 			createdAt: new Date(),
@@ -23,6 +25,7 @@ export default async function seed() {
 		{
 			id: 'park-theatre',
 			name: 'Park Theatre',
+			city: 'Vancouver',
 			url: 'https://parktheatre.ca/events/',
 			enabled: true,
 			createdAt: new Date(),
@@ -30,6 +33,7 @@ export default async function seed() {
 		{
 			id: 'heros-welcome',
 			name: "Hero's Welcome",
+			city: 'Vancouver',
 			url: 'https://heroswelcome.ca/events/',
 			enabled: true,
 			createdAt: new Date(),
@@ -37,6 +41,7 @@ export default async function seed() {
 		{
 			id: 'fox-cabaret',
 			name: 'Fox Cabaret',
+			city: 'Vancouver',
 			url: 'https://foxcabaret.com/events/',
 			enabled: true,
 			createdAt: new Date(),

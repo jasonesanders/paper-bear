@@ -20,7 +20,6 @@ export interface RawEvent {
     title: string;
     dateRaw: string;
     url?: string;
-    priceRaw?: string;
     doorsRaw?: string;
 }
 

@@ -142,33 +142,45 @@ async function fetchEventDetails(
         // Doors: Try multiple selectors
         let doorsRaw: string | undefined;
 
-        // 1. Try h4 in .show_description (e.g., "Doors: 7:00pm")
+        // 1. Try h4 in .show_description OR just the text content
         const descEl = document.querySelector('.show_description');
         if (descEl) {
+            // First try specific h4s (headers often hold the time)
             const h4s = descEl.querySelectorAll('h4');
             for (const h4 of h4s) {
-                const match = h4.textContent?.match(/Doors:\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                // More permissive regex: matches "Doors: 7:00pm", "Door 7pm", "Show @ 8"
+                const match = h4.textContent?.match(/(?:doors?|show|start|music)\s*(?:@|at|:)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
                 if (match) {
                     doorsRaw = match[1];
                     break;
                 }
             }
+
+            // If not found in h4, search the entire description text
+            if (!doorsRaw) {
+                const text = descEl.textContent || '';
+                const match = text.match(/(?:doors?|show|start|music)\s*(?:@|at|:)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+                if (match) {
+                    doorsRaw = match[1];
+                }
+            }
         }
 
-        // 2. Fallback: Try #stream_time div (e.g., "Doors: 11:59pm")
+        // 2. Fallback: Try #stream_time div
         if (!doorsRaw) {
             const streamTimeEl = document.querySelector('#stream_time');
             if (streamTimeEl) {
-                const match = streamTimeEl.textContent?.match(/Doors:\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
+                const match = streamTimeEl.textContent?.match(/(?:doors?|show|start)\s*(?:@|at|:)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
                 if (match) doorsRaw = match[1];
             }
         }
 
-        // 3. Final fallback: regex on body text
+        // 3. Final fallback: regex on body text (restricted to reasonable length to avoid false positives)
         if (!doorsRaw) {
             const bodyText = document.body.innerText;
-            const doorsMatch = bodyText.match(/Doors:\s*(\d{1,2}:\d{2}\s*(?:AM|PM)?)/i);
-            doorsRaw = doorsMatch ? doorsMatch[1] : undefined;
+            // Look for "Door" patterns within the first 2000 chars to avoid footer noise
+            const match = bodyText.substring(0, 3000).match(/(?:doors?|show|start)\s*(?:@|at|:)?\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+            doorsRaw = match ? match[1] : undefined;
         }
 
         return { priceRaw, doorsRaw };
