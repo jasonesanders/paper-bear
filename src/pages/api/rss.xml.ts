@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import rss from '@astrojs/rss';
 import type { APIRoute } from 'astro';
 import { getWeekEvents } from '../../lib/events';

@@ -1,3 +1,5 @@
+export const prerender = false;
+
 import type { APIRoute } from 'astro';
 import { db, Event, ScrapeLog, Venue, eq, inArray } from 'astro:db';
 import { EthicalScraper, generateEventHash } from '../../lib/utils/scraper-core';
