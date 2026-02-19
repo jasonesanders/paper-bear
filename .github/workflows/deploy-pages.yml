@@ -42,7 +42,7 @@ jobs:
           ASTRO_DB_REMOTE_URL: ${{ secrets.ASTRO_DB_REMOTE_URL }}
           ASTRO_DB_APP_TOKEN: ${{ secrets.ASTRO_DB_APP_TOKEN }}
         run: |
-          npm run astro build
+          npm run astro build -- --remote
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
