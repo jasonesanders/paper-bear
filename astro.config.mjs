@@ -8,5 +8,9 @@ export default defineConfig({
   adapter: node({
     mode: 'standalone'
   }),
-  integrations: [db()]
+  integrations: [db()],
+  server: {
+    host: '0.0.0.0', // Bind to all interfaces for Docker
+    port: 4321
+  }
 });
