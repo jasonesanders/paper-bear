@@ -2,7 +2,11 @@ version: '3.8'
 
 services:
   paper-bear-scraper:
-    build: .
+    build:
+      context: .
+      args:
+        - ASTRO_DB_REMOTE_URL=${ASTRO_DB_REMOTE_URL}
+        - ASTRO_DB_APP_TOKEN=${ASTRO_DB_APP_TOKEN}
     container_name: paper-bear-scraper
     ports:
       - "4321:4321"

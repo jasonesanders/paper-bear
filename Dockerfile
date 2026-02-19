@@ -1,5 +1,9 @@
 FROM mcr.microsoft.com/playwright:v1.57.0-jammy
 
+# Build arguments for Astro DB
+ARG ASTRO_DB_REMOTE_URL
+ARG ASTRO_DB_APP_TOKEN
+
 # Set working directory
 WORKDIR /app
 
@@ -15,7 +19,9 @@ RUN npx playwright install chromium --with-deps
 # Copy application code
 COPY . .
 
-# Build the application
+# Build the application with environment variables
+ENV ASTRO_DB_REMOTE_URL=$ASTRO_DB_REMOTE_URL
+ENV ASTRO_DB_APP_TOKEN=$ASTRO_DB_APP_TOKEN
 RUN npm run build -- --remote
 
 # Expose port for scraper API
