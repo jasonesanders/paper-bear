@@ -16,7 +16,7 @@ RUN npx playwright install chromium --with-deps
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN npm run build -- --remote
 
 # Expose port for scraper API
 EXPOSE 4321
