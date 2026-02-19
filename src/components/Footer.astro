@@ -1,11 +1,12 @@
 ---
 // Footer with Terms and Contact
+const base = import.meta.env.BASE_URL || '/';
 ---
 
 <footer
     class="h-8 flex items-center justify-center gap-4 text-xs border-t border-black/20 bg-base-200"
 >
-    <a href="/terms" class="link link-hover">Terms & Conditions</a>
+    <a href={`${base}/terms`} class="link link-hover">Terms & Conditions</a>
     <span class="opacity-50">•</span>
     <a href="mailto:contact@paperbear.dev" class="link link-hover"
         >contact@paperbear.dev</a

@@ -9,6 +9,9 @@ interface Props {
 
 const { currentVenue = "", currentGenre = "" } = Astro.props;
 
+// Get base path for GitHub Pages subdirectory support
+const base = import.meta.env.BASE_URL || '/';
+
 // Fetch venues for dropdown
 const venues = await db
     .select()
@@ -19,8 +22,8 @@ const venues = await db
 <header
     class="h-12 px-4 flex items-center justify-between border-b-2 border-black bg-base-100"
 >
-    <a href="/" class="flex items-center h-full">
-        <img src="/logo.svg" alt="PAPER BEAR" class="h-8 w-auto" />
+    <a href={base} class="flex items-center h-full">
+        <img src={`${base}/logo.svg`} alt="PAPER BEAR" class="h-8 w-auto" />
     </a>
 
     <!-- Filters (Tablet & Desktop) -->
@@ -62,7 +65,7 @@ const venues = await db
         <!-- RSS Link -->
         <a
             class="btn btn-sm btn-outline"
-            href={`/api/rss.xml?venue=${currentVenue}&genre=${currentGenre}`}
+            href={`${base}/api/rss.xml?venue=${currentVenue}&genre=${currentGenre}`}
             target="_blank"
         >
             RSS

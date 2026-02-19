@@ -5,6 +5,8 @@ import node from '@astrojs/node';
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
+  site: 'https://jasonesanders.github.io',
+  base: '/paper-bear',
   adapter: node({
     mode: 'standalone'
   }),
