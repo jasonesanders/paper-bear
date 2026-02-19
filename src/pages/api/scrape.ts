@@ -8,6 +8,9 @@ import { classifyEventType } from '../../lib/utils/classifier';
 import { getEnabledVenues } from '../../config/venues';
 import type { ScrapeResult, RawEvent } from '../../lib/utils/scraper-core';
 import { randomUUID } from 'crypto';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+
+const VANCOUVER_TZ = 'America/Vancouver';
 
 export const GET: APIRoute = async () => {
     console.log('🐻 API Scraper Triggered');
@@ -136,21 +139,24 @@ function normalizeEvents(venueId: string, rawEvents: RawEvent[]): NormalizedEven
         if (!date) continue; // Skip unparsable
 
         // If we have a doors time, combine it with the calendar date
-        // raw.doorsRaw is like "7:00pm" or "7:00 PM"
+        // raw.doorsRaw is like "7:00pm", "7:00 PM", or "7pm"
         if (raw.doorsRaw) {
-            const timeMatch = raw.doorsRaw.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+            // Try time with colon first, then without
+            const timeMatch = raw.doorsRaw.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i)
+                || raw.doorsRaw.match(/(\d{1,2})()\s*(am|pm)/i); // "7pm" — empty capture for minutes
             if (timeMatch) {
                 let hours = parseInt(timeMatch[1], 10);
-                const minutes = parseInt(timeMatch[2], 10);
+                const minutes = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
                 const meridiem = timeMatch[3]?.toLowerCase();
 
                 // Convert to 24-hour format
                 if (meridiem === 'pm' && hours !== 12) hours += 12;
                 if (meridiem === 'am' && hours === 12) hours = 0;
 
-                // Create new date with the correct time
-                date = new Date(date);
-                date.setHours(hours, minutes, 0, 0);
+                // date is UTC. Convert to Vancouver local time, set hours, convert back.
+                const vanDate = toZonedTime(date, VANCOUVER_TZ);
+                vanDate.setHours(hours, minutes, 0, 0);
+                date = fromZonedTime(vanDate, VANCOUVER_TZ);
             }
         }
 

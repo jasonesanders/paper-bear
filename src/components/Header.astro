@@ -10,7 +10,7 @@ interface Props {
 const { currentVenue = "", currentGenre = "" } = Astro.props;
 
 // Get base path for GitHub Pages subdirectory support
-const base = import.meta.env.BASE_URL || '/';
+const base = import.meta.env.BASE_URL || "/";
 
 // Fetch venues for dropdown
 const venues = await db
@@ -23,7 +23,7 @@ const venues = await db
     class="h-12 px-4 flex items-center justify-between border-b-2 border-black bg-base-100"
 >
     <a href={base} class="flex items-center h-full">
-        <img src={`${base}/logo.svg`} alt="PAPER BEAR" class="h-8 w-auto" />
+        <img src={`${base}/logo.svg`} alt="THE WEEK AHEAD" class="h-8 w-auto" />
     </a>
 
     <!-- Filters (Tablet & Desktop) -->
@@ -65,7 +65,7 @@ const venues = await db
         <!-- RSS Link -->
         <a
             class="btn btn-sm btn-outline"
-            href={`${base}/api/rss.xml?venue=${currentVenue}&genre=${currentGenre}`}
+            href={`${base}/api/rss.xml`}
             target="_blank"
         >
             RSS
@@ -92,7 +92,7 @@ const venues = await db
 
     <!-- Add a Venue (Desktop only) -->
     <a
-        href="mailto:add@paperbear.dev?subject=Add%20a%20Venue"
+        href="mailto:theweekahead@subversivelabs.ca?subject=Add%20a%20Venue"
         class="btn btn-outline btn-sm hidden md:inline-flex"
     >
         Add a Venue
