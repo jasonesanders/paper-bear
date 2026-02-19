@@ -4,7 +4,7 @@
 
 Paper Bear scrapes event listings from local venues across East Van and displays them in a week-view calendar. Built with [Astro](https://astro.build), server-side rendered, and styled with TailwindCSS + DaisyUI (`lofi` theme) for a bold, print-inspired aesthetic.
 
-**Live at:** `paperbear.dev` (not yet deployed)
+**Live at:** [https://jasonesanders.github.io/paper-bear/](https://jasonesanders.github.io/paper-bear/)
 
 ---
 
@@ -297,11 +297,53 @@ The app uses **Astro DB** which auto-manages the database connection. In dev mod
 
 ---
 
+## Deployment
+
+Paper Bear uses a **hybrid deployment architecture**:
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────┐
+│  GitHub Pages (Static SSG)                      │
+│  - Daily rebuild at midnight Vancouver time     │
+│  - Pre-rendered from Turso database             │
+│  - URL: jasonesanders.github.io/paper-bear/     │
+└─────────────────────────────────────────────────┘
+                      ▼
+           ┌──────────────────────┐
+           │  Turso Cloud (libSQL)│
+           │  - Shared database   │
+           │  - 3 active venues   │
+           └──────────────────────┘
+                      ▲
+┌─────────────────────────────────────────────────┐
+│  Homelab LXC + Docker (Scraper)                 │
+│  - Runs every 6 hours via cron                  │
+│  - Playwright-based scrapers                    │
+│  - Writes events to Turso                       │
+│  - URL: http://100.113.50.67:4321 (internal)   │
+└─────────────────────────────────────────────────┘
+```
+
+### Live URLs
+
+- **Frontend:** [https://jasonesanders.github.io/paper-bear/](https://jasonesanders.github.io/paper-bear/)
+- **Scraper API:** `http://100.113.50.67:4321` (Tailscale/internal only)
+
+### Deployment Guides
+
+- **GitHub Pages:** Automated via `.github/workflows/deploy-pages.yml`
+- **Homelab Setup:** See [`docs/homelab-deployment.md`](docs/homelab-deployment.md)
+- **Monitoring:** See [`docs/monitoring.md`](docs/monitoring.md)
+
+---
+
 ## Planned / Future Work
 
-- [ ] **Deployment** — Containerize with Docker, deploy to homelab or Vercel + Turso
-- [ ] **Cron scraping** — Automated daily scrape (cron job / GitHub Actions / container scheduler)
-- [ ] **More venues** — Park Theatre, Heros Welcome, Cobalt, Biltmore, etc.
+- [x] **Deployment** — Hybrid GitHub Pages (SSG) + Homelab LXC (scraper)
+- [x] **Cron scraping** — Automated scraping every 6 hours via cron
+- [ ] **More venues** — Cobalt, Biltmore, Electric Owl, etc.
 - [ ] **Event detail pages** — Individual event pages with full description, price, links
 - [ ] **Price tracking** — Add `priceRaw` / `priceFormatted` columns to Event table
 - [ ] **Search** — Full-text search across events
