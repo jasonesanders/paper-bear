@@ -3,16 +3,20 @@ interface Props {
     title: string;
     time: string;
     venue: string;
+    venueId: string;
+    genre: string;
     url: string | null;
 }
 
-const { title, time, venue, url } = Astro.props;
+const { title, time, venue, venueId, genre, url } = Astro.props;
 ---
 
 <a
     href={url}
     target="_blank"
-    class="block border-b-2 border-black last:border-b-0 p-2.5 sm:p-3 no-underline text-black visited:text-black hover:bg-neutral-100 transition-none"
+    data-venue={venueId}
+    data-genre={genre}
+    class="event-card block border-b-2 border-black last:border-b-0 p-2.5 sm:p-3 no-underline text-black visited:text-black hover:bg-neutral-100 transition-none"
 >
     <!-- Top Row: Time + Title -->
     <div class="flex flex-col gap-1">
