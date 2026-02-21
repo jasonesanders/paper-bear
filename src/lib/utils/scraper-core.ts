@@ -57,7 +57,7 @@ export interface ScrapeResult {
  */
 const DEFAULT_CONFIG: ScraperConfig = {
     userAgent: process.env.SCRAPER_USER_AGENT ||
-        'TheWeekAhead/1.0 (Vancouver Community Events Bot; theweekahead@subversivelabs.ca)',
+        'TheWeekAhead/1.0 (Vancouver Community Events Bot; hello@theweekahead.ca)',
     delayMs: parseInt(process.env.SCRAPER_DELAY_MS || '1500', 10),
     maxRetries: 3,
     timeout: 30000,

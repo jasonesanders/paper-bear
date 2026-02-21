@@ -1,4 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
-/* Custom theme overrides if needed, but handled by DaisyUI lofi theme */
+.logo-text {
+    font-family: "Rubik Dirt", sans-serif;
+}

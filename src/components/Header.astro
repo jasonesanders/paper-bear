@@ -23,7 +23,10 @@ const venues = await db
     class="h-12 px-4 flex items-center justify-between border-b-2 border-black bg-base-100"
 >
     <a href={base} class="flex items-center h-full">
-        <img src={`${base}/logo.svg`} alt="THE WEEK AHEAD" class="h-8 w-auto" />
+        <span
+            class="logo-text text-2xl uppercase tracking-tighter hover:opacity-80 transition-opacity"
+            >the week ahead</span
+        >
     </a>
 
     <!-- Filters (Tablet & Desktop) -->
@@ -92,7 +95,7 @@ const venues = await db
 
     <!-- Add a Venue (Desktop only) -->
     <a
-        href="mailto:theweekahead@subversivelabs.ca?subject=Add%20a%20Venue"
+        href="mailto:hello@theweekahead.ca?subject=Add%20a%20Venue"
         class="btn btn-outline btn-sm hidden md:inline-flex"
     >
         Add a Venue

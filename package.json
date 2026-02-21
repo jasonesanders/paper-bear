@@ -1,10 +1,10 @@
 {
-  "name": "paper-bear",
+  "name": "the-week-ahead",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build --remote",
     "preview": "astro preview",
     "astro": "astro",
     "scrape": "curl -s http://localhost:4321/api/scrape",
