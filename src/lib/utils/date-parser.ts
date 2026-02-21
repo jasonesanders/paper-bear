@@ -30,9 +30,13 @@ const DATE_FORMATS = [
     // Without year
     'EEEE, MMMM d h:mm a',         // "Friday, January 12 7:30 PM"
     'EEEE MMMM d h:mm a',          // "Sunday January 4 12:30 pm"
+    'EEE, MMM d h:mm a',           // "Thu, Feb 27 7:00 PM"
+    'EEE MMM d h:mm a',            // "Thu Feb 27 7:00 PM"
     'MMMM d h:mm a',               // "January 12 7:30 PM"
     'MMM d h:mm a',                // "Jan 12 7:30 PM"
     'EEEE, MMMM d',                // "Friday, January 12"
+    'EEE, MMM d',                  // "Thu, Feb 27"
+    'EEE MMM d',                   // "Thu Feb 27"
     'MMMM d',                      // "January 12"
     'MMM d',                       // "Jan 12"
 

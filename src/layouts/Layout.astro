@@ -15,8 +15,6 @@ const {
     currentVenue = "",
     currentGenre = "",
 } = Astro.props;
-
-const base = import.meta.env.BASE_URL || "/";
 ---
 
 <!doctype html>
@@ -59,7 +57,7 @@ const base = import.meta.env.BASE_URL || "/";
             content="One you. One life. One week. Don't miss out on The Week Ahead."
         />
         <meta property="og:url" content="https://theweekahead.ca" />
-        <meta property="og:image" content={`${base}/pb-wall.png`} />
+        <meta property="og:image" content={`/pb-wall.png`} />
     </head>
     <body
         class="bg-base-100 text-base-content font-mono min-h-screen flex flex-col"
