@@ -7,7 +7,7 @@
     "build": "astro build --remote",
     "preview": "astro preview",
     "astro": "astro",
-    "scrape": "curl -s http://localhost:4321/api/scrape",
+    "scrape": "curl -s -H \"X-Scrape-Token: ${SCRAPE_SECRET}\" http://localhost:4321/api/scrape",
     "seed": "astro db execute db/seed.ts",
     "verify": "astro db execute scripts/verify-db.ts",
     "db:reset": "astro db execute scripts/reset-db.ts",
