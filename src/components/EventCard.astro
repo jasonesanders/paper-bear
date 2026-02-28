@@ -14,6 +14,7 @@ const { title, time, venue, venueId, genre, url } = Astro.props;
 <a
     href={url}
     target="_blank"
+    rel="noopener noreferrer"
     data-venue={venueId}
     data-genre={genre}
     class="event-card block border-b-2 border-black last:border-b-0 p-2.5 sm:p-3 no-underline text-black visited:text-black hover:bg-neutral-100 transition-none"

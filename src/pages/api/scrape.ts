@@ -5,6 +5,7 @@ import { db, Event, ScrapeLog, Venue, eq, inArray } from 'astro:db';
 import { EthicalScraper, generateEventHash } from '../../lib/utils/scraper-core';
 import { parseVancouverDate } from '../../lib/utils/date-parser';
 import { classifyEventType } from '../../lib/utils/classifier';
+import { sanitizeEventUrl } from '../../lib/utils/sanitize-url';
 import { getEnabledVenues } from '../../config/venues';
 import type { ScrapeResult, RawEvent } from '../../lib/utils/scraper-core';
 import { randomUUID } from 'crypto';
@@ -181,7 +182,7 @@ function normalizeEvents(venueId: string, rawEvents: RawEvent[]): NormalizedEven
             title: raw.title,
             date,
             doorsTime: null, // Could store separately if needed
-            url: raw.url || null,
+            url: sanitizeEventUrl(raw.url), // VULN-002: validate URL scheme
             eventType,
             hash,
             createdAt: new Date(),
