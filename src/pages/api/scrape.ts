@@ -12,8 +12,20 @@ import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 const VANCOUVER_TZ = 'America/Vancouver';
 
-export const GET: APIRoute = async () => {
-    console.log('🐻 API Scraper Triggered');
+export const GET: APIRoute = async ({ request }) => {
+    // VULN-001 fix: Require auth token to prevent unauthenticated scraping
+    const token = request.headers.get('X-Scrape-Token');
+    const secret = import.meta.env.SCRAPE_SECRET;
+
+    if (!secret || token !== secret) {
+        console.warn('🚫 Scrape attempt rejected: invalid or missing token');
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json' },
+        });
+    }
+
+    console.log('🐻 API Scraper Triggered (authenticated)');
 
     const scraper = new EthicalScraper();
     const venues = getEnabledVenues();
