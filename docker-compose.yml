@@ -10,9 +10,10 @@ services:
     container_name: paper-bear-scraper
     ports:
       - "4321:4321"
+    env_file:
+      - .env
     environment:
-      - ASTRO_DB_REMOTE_URL=${ASTRO_DB_REMOTE_URL}
-      - ASTRO_DB_APP_TOKEN=${ASTRO_DB_APP_TOKEN}
+      # Static config (non-secret, safe to hardcode)
       - SCRAPER_USER_AGENT=PaperBear/1.0 (Vancouver Community Events Bot; contact@paperbear.dev)
       - SCRAPER_DELAY_MS=1500
       - NODE_ENV=production
