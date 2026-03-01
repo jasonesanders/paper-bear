@@ -15,8 +15,9 @@ const VANCOUVER_TZ = 'America/Vancouver';
 
 export const GET: APIRoute = async ({ request }) => {
     // VULN-001 fix: Require auth token to prevent unauthenticated scraping
+    // process.env (not import.meta.env) is needed for runtime env vars in Astro Node standalone SSR
     const token = request.headers.get('X-Scrape-Token');
-    const secret = import.meta.env.SCRAPE_SECRET;
+    const secret = process.env.SCRAPE_SECRET;
 
     if (!secret || token !== secret) {
         console.warn('🚫 Scrape attempt rejected: invalid or missing token');
