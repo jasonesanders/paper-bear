@@ -83,8 +83,16 @@ export function parseVancouverDate(
         return parseVancouverDate(`${timeFirstMatch[2]} ${timeFirstMatch[1]}`, referenceDate);
     }
 
+    // Fast-path: ISO 8601 strings (e.g. "2026-03-01T02:30:00+00:00" from the Rio API).
+    // new Date() handles these correctly — no format-trial needed.
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(raw.trim())) {
+        const isoDate = new Date(raw.trim());
+        return isValid(isoDate) ? isoDate : null;
+    }
+
     let parsed: Date | null = null;
     let usedFormatWithYear = false;
+
 
     // Try each format until one works
     for (const fmt of DATE_FORMATS) {
