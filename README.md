@@ -39,7 +39,7 @@ Paper Bear scrapes event listings from local venues across East Van and displays
 │  ┌──────────────────────────────────────┐    │
 │  │  Venue Scrapers                      │    │
 │  │  ├── rickshaw.ts (Playwright)        │    │
-│  │  ├── rio.ts      (Playwright)        │    │
+│  │  ├── rio.ts      (REST API)           │    │
 │  │  └── fox.ts      (Static/Cheerio)    │    │
 │  └──────────────────────────────────────┘    │
 └──────────────────────────────────────────────┘
@@ -175,10 +175,11 @@ Each scraper implements the `VenueScraper` interface from `scraper-core.ts`:
 
 ```typescript
 interface VenueScraper {
-    id: string;       // slug
-    name: string;     // display name
-    url: string;      // page to scrape
+    id: string;           // slug
+    name: string;         // display name
+    url: string;          // page to scrape
     enabled: boolean;
+    needsBrowser?: boolean;  // false = skip Playwright (REST API venues)
     scrape(page: Page | null, html: string | null): Promise<RawEvent[]>;
 }
 ```
@@ -188,7 +189,7 @@ interface VenueScraper {
 | Venue              | File            | Method       | Notes                                       |
 |--------------------|-----------------|--------------|---------------------------------------------|
 | Rickshaw Theatre   | `rickshaw.ts`   | Playwright   | Scrolls for lazy-loaded events, visits each detail page for doors time |
-| Rio Theatre        | `rio.ts`        | Playwright   | Scrapes riotheatretickets.ca, "Time - Day, Date" format |
+| Rio Theatre        | `rio.ts`        | REST API     | Hits `riotheatre.ca` WordPress REST API directly; returns ISO 8601 timestamps |
 | Fox Cabaret        | `fox.ts`        | Static/fetch | Uses Cheerio, no JS needed                  |
 
 ### How to Add a New Venue
@@ -208,7 +209,7 @@ Parses human-readable date strings into UTC `Date` objects, always in `America/V
 **Handles formats including:**
 - `"Friday, January 12, 2024 7:30 PM"`
 - `"Jan 12 7:30pm"` (infers current year)
-- `"9:00pm - Tuesday, Feb 10, 2026"` (Rio's "Time - Date" format, auto-normalized)
+- ISO 8601 strings (fast path — passed directly from REST API scrapers like Rio)
 
 **Important:** Year inference logic adds +1 year if the parsed date is >30 days in the past.
 
@@ -263,6 +264,7 @@ npm run scrape
 
 ```env
 # .env
+SCRAPE_SECRET=           # Required: token sent as X-Scrape-Token header to /api/scrape
 SCRAPER_USER_AGENT=PaperBear/1.0 (Vancouver Community Events Bot; contact@paperbear.dev)
 SCRAPER_DELAY_MS=1500
 ```
@@ -285,15 +287,11 @@ The app uses **Astro DB** which auto-manages the database connection. In dev mod
 
 1. **`priceRaw` lint error in `rickshaw.ts`** — The `RawEvent` interface doesn't include `priceRaw`, but Rickshaw's scraper still returns it. The field is extracted but not stored. Either add `priceRaw` to `RawEvent` or remove extraction.
 
-2. **No cron/scheduled scraping** — Scraping is triggered manually via `npm run scrape` or `GET /api/scrape`. Needs a cron job or similar for production.
+2. **Playwright in production** — Requires Chromium binary. For containerized deployment, use a Docker image with Playwright pre-installed (e.g., `mcr.microsoft.com/playwright`).
 
-3. **Playwright in production** — Requires Chromium binary. For containerized deployment, use a Docker image with Playwright pre-installed (e.g., `mcr.microsoft.com/playwright`).
+3. **Astro DB limitations** — Astro DB is tied to Astro's build/deploy lifecycle. For production with remote Turso, ensure `@astrojs/db` is configured with remote credentials.
 
-4. **Astro DB limitations** — Astro DB is tied to Astro's build/deploy lifecycle. For production with remote Turso, ensure `@astrojs/db` is configured with remote credentials.
-
-5. **No auth on `/api/scrape`** — Anyone can trigger a scrape. Add API key auth or rate limiting for production.
-
-6. **Debug scripts in `/scripts/`** — Several `debug-*.mjs` files are development artifacts. Safe to ignore.
+4. **Debug scripts in `/scripts/`** — Several `debug-*.mjs` files are development artifacts. Safe to ignore.
 
 ---
 
