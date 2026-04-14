@@ -12,13 +12,13 @@ chmod +x /opt/paper-bear/scripts/scrape-cron.sh
 
 # Add cron job (runs every 6 hours at :05 past the hour)
 (crontab -l 2>/dev/null || echo "") | grep -iv "paper.bear\|api/scrape\|scrape-cron" > /tmp/crontab.tmp
-echo "# Paper Bear: Scrape events every 6 hours" >> /tmp/crontab.tmp
-echo "5 */6 * * * /opt/paper-bear/scripts/scrape-cron.sh >> /var/log/paper-bear/scrape.log 2>&1" >> /tmp/crontab.tmp
+echo "# Paper Bear: Scrape events nightly at 11pm Vancouver time" >> /tmp/crontab.tmp
+echo "0 23 * * * /opt/paper-bear/scripts/scrape-cron.sh >> /var/log/paper-bear/scrape.log 2>&1" >> /tmp/crontab.tmp
 crontab /tmp/crontab.tmp
 rm /tmp/crontab.tmp
 
 echo "=== Cron job installed ==="
-echo "Schedule: Every 6 hours (00:05, 06:05, 12:05, 18:05)"
+echo "Schedule: Nightly at 11:00 PM Vancouver time"
 echo "View logs: tail -f /var/log/paper-bear/scrape.log"
 echo ""
 echo "Verify with: crontab -l"

@@ -1,7 +1,7 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Runs daily at midnight Vancouver time (8am UTC)
+  # Rebuilds nightly after the 11pm scrape (8am UTC = midnight PST / 1am PDT)
   schedule:
     - cron: '0 8 * * *'
   
