@@ -62,14 +62,14 @@ rsync -avz --exclude node_modules --exclude .git . root@<container-ip>:/opt/pape
 
 ### 5. Create environment file
 
-Create `/opt/paper-bear/.env.local`:
+Create `/opt/paper-bear/.env`:
 ```bash
 ASTRO_DB_REMOTE_URL=libsql://paper-bear-prod-[your-org].turso.io
 ASTRO_DB_APP_TOKEN=[your-token]
-NODE_ENV=production
+SCRAPE_SECRET=[generate a long random secret, e.g. openssl rand -hex 32]
 ```
 
-**Important:** Keep `.env.local` secure - it contains production credentials.
+**Important:** Keep `.env` secure — it contains production credentials. `docker-compose.yml` reads it via `env_file: .env`, and `scrape-cron.sh` reads `SCRAPE_SECRET` directly from this file.
 
 ### 6. Build and start Docker container
 
@@ -127,7 +127,7 @@ crontab -l
 Expected:
 ```
 # Paper Bear: Scrape events every 6 hours
-5 */6 * * * curl -s -X POST http://localhost:4321/api/scrape >> /var/log/paper-bear/scrape.log 2>&1
+5 */6 * * * /opt/paper-bear/scripts/scrape-cron.sh >> /var/log/paper-bear/scrape.log 2>&1
 ```
 
 ## Testing
@@ -136,7 +136,7 @@ Expected:
 
 Trigger a scrape manually:
 ```bash
-curl -X POST http://localhost:4321/api/scrape
+bash /opt/paper-bear/scripts/scrape-cron.sh
 ```
 
 Wait 30-60 seconds for scraping to complete, then check logs:
@@ -198,7 +198,7 @@ systemctl status cron
 
 Test cron entry manually:
 ```bash
-curl -s -X POST http://localhost:4321/api/scrape >> /var/log/paper-bear/scrape.log 2>&1
+bash /opt/paper-bear/scripts/scrape-cron.sh >> /var/log/paper-bear/scrape.log 2>&1
 ```
 
 ## Troubleshooting
@@ -262,7 +262,7 @@ bash scripts/setup-cron.sh
 ## Security Notes
 
 1. **`.env.local`** contains production credentials - never commit to git
-2. **Scraper API** has no authentication - keep on internal network only
+2. **Scraper API** is token-gated via `X-Scrape-Token` / `SCRAPE_SECRET` - keep on internal network as well
 3. **Firewall** - Only expose port 4321 to trusted networks (Tailscale recommended)
 4. **Turso token** - Use long-lived token with read/write permissions only
 
