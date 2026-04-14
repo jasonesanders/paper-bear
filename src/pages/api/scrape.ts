@@ -8,7 +8,7 @@ import { classifyEventType } from '../../lib/utils/classifier';
 import { sanitizeEventUrl } from '../../lib/utils/sanitize-url';
 import { getEnabledVenues } from '../../config/venues';
 import type { ScrapeResult, RawEvent } from '../../lib/utils/scraper-core';
-import { randomUUID } from 'crypto';
+import { randomUUID, timingSafeEqual } from 'crypto';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 const VANCOUVER_TZ = 'America/Vancouver';
@@ -19,7 +19,11 @@ export const GET: APIRoute = async ({ request }) => {
     const token = request.headers.get('X-Scrape-Token');
     const secret = process.env.SCRAPE_SECRET;
 
-    if (!secret || token !== secret) {
+    const isValidToken = !!token && !!secret &&
+        token.length === secret.length &&
+        timingSafeEqual(Buffer.from(token), Buffer.from(secret));
+
+    if (!isValidToken) {
         console.warn('🚫 Scrape attempt rejected: invalid or missing token');
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
             status: 401,

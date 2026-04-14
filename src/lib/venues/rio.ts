@@ -66,10 +66,16 @@ function decodeHtmlEntities(str: string): string {
 }
 
 /**
- * Format a Date as YYYY-MM-DD in UTC (for the API's start_date / end_date params).
+ * Format a Date as YYYY-MM-DD in Vancouver local time (for the API's start_date / end_date params).
+ * Must use local time, not UTC — after 5 PM PDT the UTC date is already tomorrow.
  */
 function toApiDate(date: Date): string {
-    return date.toISOString().slice(0, 10);
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'America/Vancouver',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).format(date);
 }
 
 export const RioTheatre: VenueScraper = {
@@ -77,6 +83,7 @@ export const RioTheatre: VenueScraper = {
     name: 'Rio Theatre',
     url: 'https://riotheatre.ca/calendar',
     enabled: true,
+    needsBrowser: false,
 
     async scrape(_page: Page | null): Promise<RawEvent[]> {
         console.log('   🎬 Fetching Rio Theatre events from REST API...');
@@ -97,6 +104,7 @@ export const RioTheatre: VenueScraper = {
                 'User-Agent': 'TheWeekAhead/1.0 (Vancouver Community Events Bot; hello@theweekahead.ca)',
                 'Accept': 'application/json',
             },
+            signal: AbortSignal.timeout(10000),
         });
 
         if (!response.ok) {

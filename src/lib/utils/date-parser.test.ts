@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { parseVancouverDate, extractDoorsAndShow } from './date-parser';
-import { format } from 'date-fns';
 
 describe('parseVancouverDate', () => {
     // Helper to verify date is correct in Vancouver time (without worrying about local timezone of runner)
@@ -48,7 +47,8 @@ describe('parseVancouverDate', () => {
     });
 
     it('normalizes "doors @ 7pm"', () => {
-        const refDate = new Date('2024-01-01T00:00:00Z');
+        // Use noon PST (20:00 UTC) so the Vancouver-local date is definitely Jan 1
+        const refDate = new Date('2024-01-01T20:00:00Z');
         const date = parseVancouverDate('Doors @ 7pm', refDate);
         // 7pm PST = 03:00 UTC next day (Jan 2)
         expect(date?.toISOString()).toBe('2024-01-02T03:00:00.000Z');
@@ -56,21 +56,24 @@ describe('parseVancouverDate', () => {
 });
 
 describe('extractDoorsAndShow', () => {
+    // Pin a winter (PST, UTC-8) reference date so results are stable regardless of when tests run
+    const winterRef = new Date('2024-01-15T20:00:00Z'); // noon PST Jan 15
+
     it('extracts doors and show times from string', () => {
         const text = "Doors 7:00pm Show 8:00pm";
-        const { doors, show } = extractDoorsAndShow(text);
+        const { doors, show } = extractDoorsAndShow(text, winterRef);
 
         expect(doors).not.toBeNull();
         expect(show).not.toBeNull();
 
-        // 7pm PST = 03:00 UTC
+        // 7pm PST = 03:00 UTC next day
         expect(doors?.getUTCHours()).toBe(3);
-        // 8pm PST = 04:00 UTC
+        // 8pm PST = 04:00 UTC next day
         expect(show?.getUTCHours()).toBe(4);
     });
 
     it('handles "Doors at 7pm"', () => {
-        const { doors } = extractDoorsAndShow("Doors at 7pm");
+        const { doors } = extractDoorsAndShow("Doors at 7pm", winterRef);
         expect(doors?.getUTCHours()).toBe(3);
     });
 });

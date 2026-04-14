@@ -165,7 +165,7 @@ export function formatForDisplay(date: Date): string {
  * Extract doors time from strings like "Doors 7pm, Show 8pm".
  * Returns both times if found.
  */
-export function extractDoorsAndShow(raw: string): {
+export function extractDoorsAndShow(raw: string, referenceDate: Date = new Date()): {
     doors: Date | null;
     show: Date | null;
 } {
@@ -176,7 +176,7 @@ export function extractDoorsAndShow(raw: string): {
     const showMatch = raw.match(new RegExp(`(?:show|music|start|performance)\\s*(?:@|at|:)?\\s*${timeRegex.source}`, 'i'));
 
     return {
-        doors: doorsMatch ? parseVancouverDate(doorsMatch[1]) : null,
-        show: showMatch ? parseVancouverDate(showMatch[1]) : null,
+        doors: doorsMatch ? parseVancouverDate(doorsMatch[1], referenceDate) : null,
+        show: showMatch ? parseVancouverDate(showMatch[1], referenceDate) : null,
     };
 }

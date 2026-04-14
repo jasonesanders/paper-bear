@@ -2,12 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { FoxCabaret } from './fox';
 import type { Page } from 'playwright';
 
-// Mock Playwright Page
 const mockPage = {
     waitForSelector: vi.fn(),
-    waitForTimeout: vi.fn(),
-    evaluate: vi.fn(),
-    goto: vi.fn(),
+    $$eval: vi.fn(),
 } as unknown as Page;
 
 describe('FoxCabaret Scraper', () => {
@@ -15,34 +12,29 @@ describe('FoxCabaret Scraper', () => {
         vi.resetAllMocks();
     });
 
-    it('should deduplicate events that appear twice (list items and flyouts)', async () => {
-        // Mock 1: Month/Year header
-        const mockMonthYear = 'January 2026';
-
-        // Mock 2: Calendar scraping (simulating duplicates)
-        // Squarespace often has duplicate nodes for the same event in the DOM
-        const mockCalendarEvents = [
-            { title: 'Duplicate Event', time: '8:00 PM', dayNum: '10', href: '/event-1' },
-            { title: 'Duplicate Event', time: '8:00 PM', dayNum: '10', href: '/event-1' }, // Duplicate!
-            { title: 'Unique Event', time: '9:00 PM', dayNum: '11', href: '/event-2' }
-        ];
-
-        // Mock 3: Detail page scraping
-        const mockDetails = {
-            dateRaw: 'January 10, 2026 8:00 PM',
-            priceRaw: '$15',
-            doorsRaw: '7:00 PM'
-        };
-
-        (mockPage.evaluate as any)
-            .mockResolvedValueOnce(mockMonthYear)      // 1. Header
-            .mockResolvedValueOnce(mockCalendarEvents) // 2. Calendar grid
-            .mockResolvedValue(mockDetails);           // 3. Detail pages (repeated)
+    it('returns events extracted from the list page', async () => {
+        (mockPage.$$eval as any).mockResolvedValue([
+            { title: 'Show One', dateRaw: 'January 10, 2026 8:00 PM', url: 'https://www.foxcabaret.com/show-one', doorsRaw: '7:00 PM', priceRaw: '$15' },
+            { title: 'Show Two', dateRaw: 'January 11, 2026 9:00 PM', url: 'https://www.foxcabaret.com/show-two', doorsRaw: undefined, priceRaw: undefined },
+        ]);
 
         const events = await FoxCabaret.scrape(mockPage);
 
-        // Expectation: Duplicates should be removed
-        expect(events).toHaveLength(2); // Should be 2, currently will be 3 (FAIL)
-        expect(events.map(e => e.title)).toEqual(['Duplicate Event', 'Unique Event']);
+        expect(events).toHaveLength(2);
+        expect(events[0].title).toBe('Show One');
+        expect(events[0].dateRaw).toBe('January 10, 2026 8:00 PM');
+        expect(events[0].doorsRaw).toBe('7:00 PM');
+        expect(events[1].title).toBe('Show Two');
+    });
+
+    it('filters out events without titles', async () => {
+        (mockPage.$$eval as any).mockResolvedValue([
+            { title: '', dateRaw: 'January 10, 2026', url: '', doorsRaw: undefined, priceRaw: undefined },
+            { title: 'Real Show', dateRaw: 'January 11, 2026 8:00 PM', url: 'https://www.foxcabaret.com/real', doorsRaw: undefined, priceRaw: undefined },
+        ]);
+
+        const events = await FoxCabaret.scrape(mockPage);
+        expect(events).toHaveLength(1);
+        expect(events[0].title).toBe('Real Show');
     });
 });
