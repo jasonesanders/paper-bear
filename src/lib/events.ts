@@ -1,5 +1,5 @@
 import { db, Event, Venue, eq, and, gte, lt, asc } from 'astro:db';
-import { toZonedTime, format } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime, format } from 'date-fns-tz';
 
 const VANCOUVER_TZ = 'America/Vancouver';
 
@@ -25,8 +25,9 @@ export interface FilterOptions {
 
 export async function getWeekEvents(startDate: Date, filters: FilterOptions = {}): Promise<DayData[]> {
     // Ensure start date is set to beginning of day in Vancouver time
-    const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0);
+    const vancouverNow = toZonedTime(startDate, VANCOUVER_TZ);
+    vancouverNow.setHours(0, 0, 0, 0);
+    const start = fromZonedTime(vancouverNow, VANCOUVER_TZ);
 
     const end = new Date(start);
     end.setDate(end.getDate() + 7);
@@ -65,7 +66,8 @@ export async function getWeekEvents(startDate: Date, filters: FilterOptions = {}
     for (let i = 0; i < 7; i++) {
         const d = new Date(start);
         d.setDate(d.getDate() + i);
-        days.push({ date: d, events: [] });
+        // We store the date as a "Vancouver wall-clock" date for grouping
+        days.push({ date: toZonedTime(d, VANCOUVER_TZ), events: [] });
     }
 
     for (const event of rawEvents) {

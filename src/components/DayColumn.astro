@@ -9,6 +9,9 @@ interface Props {
     isFirst?: boolean;
 }
 
+import { toZonedTime } from 'date-fns-tz';
+const VANCOUVER_TZ = 'America/Vancouver';
+
 const { date, events, isLast, isFirst } = Astro.props;
 
 // Date Formatting: "MON 12"
@@ -16,7 +19,9 @@ const weekday = date
     .toLocaleDateString("en-US", { weekday: "short" })
     .toUpperCase();
 const dayNum = date.getDate();
-const today = new Date();
+
+// today in Vancouver wall-clock time
+const today = toZonedTime(new Date(), VANCOUVER_TZ);
 const isToday =
     date.getDate() === today.getDate() &&
     date.getMonth() === today.getMonth() &&

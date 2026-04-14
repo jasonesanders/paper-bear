@@ -31,6 +31,8 @@ export interface VenueScraper {
     name: string;            // display: 'Rickshaw Theatre'
     url: string;             // calendar URL
     enabled: boolean;
+    /** Set false for venues that fetch their own data (e.g. via REST API). Defaults to true. */
+    needsBrowser?: boolean;
 
     /**
      * Scrape events from the venue.
@@ -179,24 +181,29 @@ export class EthicalScraper {
             try {
                 console.log(`[${venue.name}] Scraping attempt ${attempt}/${this.config.maxRetries}...`);
 
-                // Fetch the page
-                const { page, html } = await this.fetchDynamic(venue.url);
+                let events: RawEvent[];
 
-                try {
-                    // Run the venue-specific scraper
-                    const events = await venue.scrape(page, html);
-
-                    console.log(`[${venue.name}] Found ${events.length} events`);
-
-                    return {
-                        venueId: venue.id,
-                        status: 'success',
-                        events,
-                        durationMs: Date.now() - startTime,
-                    };
-                } finally {
-                    await page.close();
+                if (venue.needsBrowser === false) {
+                    // Venue fetches its own data (e.g. REST API) — skip Playwright
+                    events = await venue.scrape(null, null);
+                } else {
+                    // Fetch the page with Playwright
+                    const { page, html } = await this.fetchDynamic(venue.url);
+                    try {
+                        events = await venue.scrape(page, html);
+                    } finally {
+                        await page.close();
+                    }
                 }
+
+                console.log(`[${venue.name}] Found ${events.length} events`);
+
+                return {
+                    venueId: venue.id,
+                    status: 'success',
+                    events,
+                    durationMs: Date.now() - startTime,
+                };
             } catch (error) {
                 lastError = error instanceof Error ? error : new Error(String(error));
                 console.error(`[${venue.name}] Attempt ${attempt} failed:`, lastError.message);
